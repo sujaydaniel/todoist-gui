@@ -234,10 +234,18 @@ async function completeTask() {
 
 async function snoozeTask(hours) {
   if (!selectedTask) return;
-  const newDue = new Date();
-  newDue.setHours(newDue.getHours() + hours);
 
-  // update due date
+  // 🔑 Start from existing due date if available
+  let baseDue = selectedTask.due?.datetime
+    ? new Date(selectedTask.due.datetime)
+    : selectedTask.due?.date
+      ? new Date(selectedTask.due.date)
+      : new Date(); // fallback if no due date set
+
+  // Add snooze hours
+  baseDue.setHours(baseDue.getHours() + hours);
+
+  // Update Todoist
   await fetch(`https://api.todoist.com/rest/v2/tasks/${selectedTask.id}`, {
     method: "POST",
     headers: {
@@ -245,16 +253,23 @@ async function snoozeTask(hours) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      due_datetime: newDue.toISOString()
+      due_datetime: baseDue.toISOString()
     })
   });
 
-  // add comment for audit trail
-  await addComment(selectedTask.id, `⏰ Snoozed by ${hours}h on ${new Date().toLocaleString()}`);
+  // Update local copy so further snoozes stack correctly
+  selectedTask.due = { datetime: baseDue.toISOString() };
+
+  // Add audit comment
+  await addComment(
+    selectedTask.id,
+    `⏰ Snoozed by ${hours}h → now due ${baseDue.toLocaleString()}`
+  );
 
   closeTaskMenu();
   fetchTasks();
 }
+
 
 // === ADD COMMENT ===
 async function addComment(taskId, content) {
