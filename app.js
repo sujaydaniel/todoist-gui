@@ -1,0 +1,385 @@
+// === CONFIG ===
+const PEOPLE = ["Sujay", "Joy", "Rohan", "Rhea"];
+let apiToken = localStorage.getItem("todoistToken") || "";
+let showAll = false;
+let selectedTask = null;
+let choresProjectId = null;
+
+
+async function ensureLabelExists(labelName) {
+  const res = await fetch("https://api.todoist.com/rest/v2/labels", {
+    headers: { Authorization: `Bearer ${apiToken}` }
+  });
+  const labels = await res.json();
+
+  // check if label exists
+  let label = labels.find(l => l.name.toLowerCase() === labelName.toLowerCase());
+  if (label) return label.name;
+
+  // create label if missing
+  const createRes = await fetch("https://api.todoist.com/rest/v2/labels", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ name: labelName })
+  });
+  const newLabel = await createRes.json();
+  return newLabel.name;
+}
+
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById("clock").textContent =
+    now.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/New_York"
+    });
+}
+
+
+setInterval(updateClock, 1000);
+updateClock();
+
+// === SETTINGS ===
+function openSettings() {
+  document.getElementById("settingsPanel").style.display = "flex";
+}
+function closeSettings() {
+  document.getElementById("settingsPanel").style.display = "none";
+}
+function saveSettings() {
+  apiToken = document.getElementById("tokenInput").value.trim();
+  localStorage.setItem("todoistToken", apiToken);
+  closeSettings();
+  init();
+}
+document.getElementById("tokenInput").value = apiToken;
+
+// === TOGGLE VIEW ===
+function toggleView() {
+  showAll = !showAll;
+  document.getElementById("viewModeLabel").textContent =
+    "View: " + (showAll ? "All Tasks" : "Today/Overdue");
+  fetchTasks();
+}
+
+// === INIT: GET PROJECTS ===
+async function init() {
+  if (!apiToken) return;
+
+  const res = await fetch("https://api.todoist.com/rest/v2/projects", {
+    headers: { Authorization: `Bearer ${apiToken}` }
+  });
+  const projects = await res.json();
+  const choresProject = projects.find(p => p.name.toLowerCase() === "chores");
+  choresProjectId = choresProject ? choresProject.id : null;
+
+  fetchTasks();
+}
+
+// === FETCH TASKS FROM "CHORES" ===
+async function fetchTasks() {
+  if (!apiToken || !choresProjectId) return;
+
+  const res = await fetch(`https://api.todoist.com/rest/v2/tasks?project_id=${choresProjectId}`, {
+    headers: { Authorization: `Bearer ${apiToken}` }
+  });
+  let tasks = await res.json();
+
+  if (!showAll) {
+    const now = new Date();
+    tasks = tasks.filter(t => {
+      if (!t.due) return false; // safely skip tasks with no due date
+      const dueDate = new Date(t.due.datetime || t.due.date);
+      return (
+        dueDate < now ||
+        dueDate.toDateString() === now.toDateString()
+      );
+    });
+  }
+
+  // When showAll = true, we include all tasks (due + no-due)
+  renderTasks(tasks);
+}
+setInterval(fetchTasks, 60000);
+
+
+// === RENDER TASKS ===
+function renderTasks(tasks) {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  PEOPLE.forEach(person => {
+    const row = document.createElement("div");
+
+    const nameCell = document.createElement("div");
+    nameCell.textContent = person;
+    row.appendChild(nameCell);
+
+    let personTasks = tasks.filter(t => t.labels.includes(person));
+
+    // ✅ Sort by upcoming due date (tasks without due dates go last)
+    personTasks.sort((a, b) => {
+      if (!a.due && !b.due) return 0;
+      if (!a.due) return 1;
+      if (!b.due) return -1;
+      const dateA = new Date(a.due.datetime || a.due.date);
+      const dateB = new Date(b.due.datetime || b.due.date);
+      return dateA - dateB;
+    });
+
+    if (personTasks.length === 0) {
+      const placeholder = document.createElement("div");
+      placeholder.className = "card";
+      placeholder.textContent = "— No tasks —";
+      row.appendChild(placeholder);
+    } else {
+      personTasks.forEach(t => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.onclick = () => openTaskMenu(t);
+
+        let dueLabel = "No due date";
+        let overdue = false;
+
+        if (t.due) {
+          const rawDate = t.due.datetime || t.due.date;
+          const dueDate = new Date(rawDate);
+          dueLabel = formatDueDate(dueDate);
+
+          if (dueDate < new Date()) {
+            overdue = true;
+          }
+        }
+
+        if (overdue) card.classList.add("overdue");
+
+        const emoji = pickEmoji(t.content);
+
+        const icon = document.createElement("div");
+        icon.textContent = emoji;
+        icon.style.fontSize = "36px";
+
+        const title = document.createElement("div");
+        title.textContent = t.content;
+        title.style.fontSize = "14px";
+        title.style.textAlign = "center";
+
+        const due = document.createElement("div");
+        due.className = "due";
+        due.textContent = dueLabel;
+
+        card.appendChild(icon);
+        card.appendChild(title);
+        card.appendChild(due);
+        row.appendChild(card);
+      });
+    }
+
+    grid.appendChild(row);
+  });
+}
+
+
+// === EMOJI PICKER ===
+function pickEmoji(text) {
+  const lower = text.toLowerCase();
+  if (lower.includes("hair")) return "💈";
+  if (lower.includes("garbage") || lower.includes("trash")) return "🗑️";
+  if (lower.includes("card")) return "🏞️"; 
+  if (lower.includes("call")) return "☎️";
+  if (lower.includes("dishes")) return "🍽️";
+  if (lower.includes("homework")) return "📚";
+  if (lower.includes("exercise") || lower.includes("workout")) return "💪";
+  if (lower.includes("dog") || lower.includes("walk")) return "🐕";
+  if (lower.includes("tablet") || lower.includes("vitamin")) return "💊";
+  if (lower.includes("car") || lower.includes("drive")) return "🚗";
+  if (lower.includes("money") || lower.includes("cash")) return "💲";
+  return "✅";
+}
+
+// === TASK MENU ===
+function openTaskMenu(task) {
+  selectedTask = task;
+  document.getElementById("taskMenuTitle").textContent = task.content;
+  document.getElementById("taskMenu").style.display = "block";
+}
+function closeTaskMenu() {
+  document.getElementById("taskMenu").style.display = "none";
+  selectedTask = null;
+}
+
+// === COMPLETE / SNOOZE WITH AUDIT COMMENT ===
+async function completeTask() {
+  if (!selectedTask) return;
+
+  // close task
+  await fetch(`https://api.todoist.com/rest/v2/tasks/${selectedTask.id}/close`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiToken}` }
+  });
+
+  // add comment for audit trail
+  await addComment(selectedTask.id, `✅ Completed on ${new Date().toLocaleString()}`);
+
+  closeTaskMenu();
+  fetchTasks();
+}
+
+async function snoozeTask(hours) {
+  if (!selectedTask) return;
+  const newDue = new Date();
+  newDue.setHours(newDue.getHours() + hours);
+
+  // update due date
+  await fetch(`https://api.todoist.com/rest/v2/tasks/${selectedTask.id}`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      due_datetime: newDue.toISOString()
+    })
+  });
+
+  // add comment for audit trail
+  await addComment(selectedTask.id, `⏰ Snoozed by ${hours}h on ${new Date().toLocaleString()}`);
+
+  closeTaskMenu();
+  fetchTasks();
+}
+
+// === ADD COMMENT ===
+async function addComment(taskId, content) {
+  await fetch(`https://api.todoist.com/rest/v2/comments`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      task_id: taskId,
+      content: content
+    })
+  });
+}
+
+
+// === CREATE TASK MODAL ===
+function openCreateTask() {
+  document.getElementById("createTaskModal").style.display = "flex";
+}
+function closeCreateTask() {
+  document.getElementById("createTaskModal").style.display = "none";
+}
+
+// === CREATE TASK ===
+async function createTask() {
+  if (!apiToken || !choresProjectId) return;
+
+  const name = document.getElementById("newTaskName").value.trim();
+  const assignee = document.getElementById("newTaskAssignee").value;
+  const schedule = document.getElementById("newTaskSchedule").value.trim(); // NEW
+
+  if (!name) {
+    alert("Please enter a task name.");
+    return;
+  }
+
+  // Ensure label exists for the assignee
+  const ensuredLabel = await ensureLabelExists(assignee);
+
+  // Build payload
+  const payload = {
+    content: name,
+    project_id: choresProjectId,
+    labels: [ensuredLabel],
+  };
+
+  // Add due_string if user provided one
+  if (schedule) {
+    payload.due_string = schedule;  // Todoist parses natural language here
+  }
+
+  // Send to Todoist
+  await fetch("https://api.todoist.com/rest/v2/tasks", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  // Reset form
+  document.getElementById("newTaskName").value = "";
+  document.getElementById("newTaskAssignee").value = "Sujay";
+  document.getElementById("newTaskSchedule").value = ""; // clear schedule input
+  closeCreateTask();
+
+  fetchTasks();
+}
+
+// === DELETE TASK ===
+async function deleteTask() {
+  if (!selectedTask) return;
+
+  if (!confirm("Are you sure you want to delete this task?")) {
+    return;
+  }
+
+  await fetch(`https://api.todoist.com/rest/v2/tasks/${selectedTask.id}`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${apiToken}` }
+  });
+
+  // Optional: add audit comment before deletion
+  await fetch("https://api.todoist.com/rest/v2/comments", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      task_id: selectedTask.id,
+      content: `Task deleted at ${new Date().toLocaleString()}`
+    })
+  });
+
+  closeTaskMenu();
+  fetchTasks(); // refresh the board
+}
+
+function formatDueDate(dueDate) {
+  const now = new Date();
+  const today = now.toDateString();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+
+  if (dueDate.toDateString() === today) {
+    // Only show time for today
+    return dueDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else if (dueDate.toDateString() === tomorrow.toDateString()) {
+    return "Tomorrow " + dueDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else {
+    // Short style like "Tue, Aug 20, 9:00 AM"
+    return dueDate.toLocaleDateString([], {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+}
+
+
+
+
+// === BOOT ===
+init();

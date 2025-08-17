@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Family Task Board</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Menu -->
+  <div id="topbar">
+    <div id="topbar-left">
+      <button onclick="toggleView()">🔄 Toggle View</button>
+      <span id="viewModeLabel">View: Today/Overdue</span>
+      <button onclick="openSettings()">⚙️ Settings</button>
+    </div>
+    <div id="topbar-right">
+      <button onclick="openCreateTask()">➕ Create</button>
+      <span id="clock">--:--</span>
+    </div>
+  </div>
+
+  <!-- Task Grid -->
+  <div id="grid"></div>
+
+  <!-- Settings Panel -->
+  <div id="settingsPanel">
+    <div>
+      <h3>Settings</h3>
+      <label>Todoist Token:</label>
+      <input id="tokenInput" type="text" placeholder="Paste API token here">
+      <button onclick="saveSettings()">Save</button>
+      <button onclick="closeSettings()">Close</button>
+    </div>
+  </div>
+
+  <!-- Task Menu -->
+  <div id="taskMenu">
+    <p id="taskMenuTitle"></p>
+    <button onclick="completeTask()">✅ Done</button>
+    <button onclick="snoozeTask(1)">Snooze 1h</button>
+    <button onclick="snoozeTask(3)">Snooze 3h</button>
+    <button onclick="snoozeTask(6)">Snooze 6h</button>
+    <button onclick="snoozeTask(12)">Snooze 12h</button>
+    <button onclick="snoozeTask(24)">Snooze 24h</button>
+    <button onclick="closeTaskMenu()">Cancel</button>
+    <button onclick="deleteTask()">Delete</button> <!-- NEW -->
+  </div>
+
+<!-- Create Task Modal -->
+<div id="createTaskModal" class="modal">
+  <div class="modal-content">
+    <h3>Create New Task</h3>
+
+    <label>Task Name:</label>
+    <input type="text" id="newTaskName" placeholder="e.g., Take out trash">
+
+    <label>Schedule (optional):</label>
+    <input type="text" id="newTaskSchedule" placeholder="e.g., everyday at 9 AM">
+
+    <label>Assign To:</label>
+    <select id="newTaskAssignee">
+      <option value="Sujay">Sujay</option>
+      <option value="Joy">Joy</option>
+      <option value="Rohan">Rohan</option>
+      <option value="Rhea">Rhea</option>
+    </select>
+
+    <div class="modal-actions">
+      <button onclick="createTask()">✅ Create</button>
+      <button onclick="closeCreateTask()">❌ Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+  <script src="app.js"></script>
+</body>
+</html>
