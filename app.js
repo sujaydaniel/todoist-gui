@@ -198,7 +198,7 @@ function pickEmoji(text) {
   if (lower.includes("dog") || lower.includes("walk")) return "🐕";
   if (lower.includes("tablet") || lower.includes("vitamin")) return "💊";
   if (lower.includes("car") || lower.includes("drive")) return "🚗";
-  if (lower.includes("piano") || lower.includes("music"))) return "🎼";
+  if (lower.includes("piano") || lower.includes("music")) return "🎼";
   if (lower.includes("violin" )) return "🎻";
   if (lower.includes("money") || lower.includes("cash")) return "💲";
   return "✅";
