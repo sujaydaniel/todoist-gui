@@ -189,10 +189,11 @@ function renderTasks(tasks) {
 function pickEmoji(text) {
   const lower = text.toLowerCase();
   if (lower.includes("hair")) return "💈";
+  if (lower.includes("garbage truck")) return "🗑️🚛"; 
   if (lower.includes("garbage") || lower.includes("trash")) return "🗑️";
   if (lower.includes("card")) return "🏞️"; 
   if (lower.includes("call")) return "☎️";
-  if (lower.includes("dishes")) return "🍽️";
+  if (lower.includes("dish")) return "🍽️";
   if (lower.includes("homework")) return "📚";
   if (lower.includes("exercise") || lower.includes("workout")) return "💪";
   if (lower.includes("dog") || lower.includes("walk")) return "🐕";
@@ -200,7 +201,9 @@ function pickEmoji(text) {
   if (lower.includes("car") || lower.includes("drive")) return "🚗";
   if (lower.includes("piano") || lower.includes("music")) return "🎼";
   if (lower.includes("violin" )) return "🎻";
-  if (lower.includes("money") || lower.includes("cash")) return "💲";
+  if (lower.includes("money") || lower.includes("cash")|| lower.includes("stock")) return "💲";
+  
+
   return "✅";
 }
 
