@@ -202,6 +202,9 @@ function pickEmoji(text) {
   if (lower.includes("piano") || lower.includes("music")) return "🎼";
   if (lower.includes("violin" )) return "🎻";
   if (lower.includes("money") || lower.includes("cash")|| lower.includes("stock")) return "💲";
+  if (lower.includes("rumi")) return "🐶";
+  if (lower.includes("library") || lower.includes("book")) return "📚"; 
+  if (lower.includes("holiday") || lower.includes("vacation")) return "🏖️"; 
   
 
   return "✅";
