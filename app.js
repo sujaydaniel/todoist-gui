@@ -205,6 +205,7 @@ function pickEmoji(text) {
   if (lower.includes("rumi")) return "🐶";
   if (lower.includes("library") || lower.includes("book")) return "📚"; 
   if (lower.includes("holiday") || lower.includes("vacation")) return "🏖️"; 
+  if (lower.includes("water")) return "💧"; 
   
 
   return "✅";
@@ -214,10 +215,11 @@ function pickEmoji(text) {
 function openTaskMenu(task) {
   selectedTask = task;
   document.getElementById("taskMenuTitle").textContent = task.content;
-  document.getElementById("taskMenu").style.display = "block";
+  document.getElementById("taskMenuOverlay").style.display = "flex";
 }
+
 function closeTaskMenu() {
-  document.getElementById("taskMenu").style.display = "none";
+  document.getElementById("taskMenuOverlay").style.display = "none";
   selectedTask = null;
 }
 
@@ -400,6 +402,30 @@ function formatDueDate(dueDate) {
     });
   }
 }
+
+function showLoading() {
+  document.getElementById("loadingOverlay").style.display = "flex";
+}
+
+function hideLoading() {
+  document.getElementById("loadingOverlay").style.display = "none";
+}
+
+// Close modals when clicking outside of them
+window.addEventListener("click", function(event) {
+  const createTaskModal = document.getElementById("createTaskModal");
+  const taskMenuModal = document.getElementById("taskMenuOverlay");
+
+  // if clicked outside create task modal
+  if (event.target === createTaskModal) {
+    closeCreateTask();
+  }
+
+  // if clicked outside task menu modal
+  if (event.target === taskMenuModal) {
+    closeTaskMenu();
+  }
+});
 
 
 

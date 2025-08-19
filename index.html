@@ -34,16 +34,18 @@
   </div>
 
   <!-- Task Menu -->
-  <div id="taskMenu">
-    <p id="taskMenuTitle"></p>
-    <button onclick="completeTask()">✅ Done</button>
-    <button onclick="snoozeTask(1)">Snooze 1h</button>
-    <button onclick="snoozeTask(3)">Snooze 3h</button>
-    <button onclick="snoozeTask(6)">Snooze 6h</button>
-    <button onclick="snoozeTask(12)">Snooze 12h</button>
-    <button onclick="snoozeTask(24)">Snooze 24h</button>
-    <button onclick="closeTaskMenu()">Cancel</button>
-    <button onclick="deleteTask()">Delete</button> <!-- NEW -->
+  <div id="taskMenuOverlay" class="modal">
+    <div id="taskMenu" class="modal-content">
+        <p id="taskMenuTitle"></p>
+        <button onclick="completeTask()">✅ Done</button>
+        <button onclick="snoozeTask(1)">Snooze 1h</button>
+        <button onclick="snoozeTask(3)">Snooze 3h</button>
+        <button onclick="snoozeTask(6)">Snooze 6h</button>
+        <button onclick="snoozeTask(12)">Snooze 12h</button>
+        <button onclick="snoozeTask(24)">Snooze 24h</button>
+        <button onclick="closeTaskMenu()">Cancel</button>
+        <button onclick="deleteTask()">Delete</button> <!-- NEW -->
+    </div>
   </div>
 
 <!-- Create Task Modal -->
@@ -72,6 +74,9 @@
   </div>
 </div>
 
+<div id="loadingOverlay" style="display:none;">
+  <div class="spinner"></div>
+</div>
 
   <script src="app.js"></script>
 </body>
