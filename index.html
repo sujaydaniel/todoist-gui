@@ -36,14 +36,18 @@
   <!-- Task Menu -->
   <div id="taskMenuOverlay" class="modal">
     <div id="taskMenu" class="modal-content">
+        <!--<span class="close" onclick="closeCreateTask()">&times;</span>-->
         <p id="taskMenuTitle"></p>
-        <button onclick="completeTask()">✅ Done</button>
         <button onclick="snoozeTask(1)">Snooze 1h</button>
         <button onclick="snoozeTask(3)">Snooze 3h</button>
         <button onclick="snoozeTask(6)">Snooze 6h</button>
         <button onclick="snoozeTask(12)">Snooze 12h</button>
         <button onclick="snoozeTask(24)">Snooze 24h</button>
+<hr>
+        <button onclick="completeTask()">✅ Done</button>
         <button onclick="closeTaskMenu()">Cancel</button>
+        <button onclick="markTaskMissed()">Missed</button>
+<hr>
         <button onclick="deleteTask()">Delete</button> <!-- NEW -->
     </div>
   </div>
@@ -51,6 +55,7 @@
 <!-- Create Task Modal -->
 <div id="createTaskModal" class="modal">
   <div class="modal-content">
+    <!--<span class="close" onclick="closeTaskMenu()">&times;</span>-->
     <h3>Create New Task</h3>
 
     <label>Task Name:</label>

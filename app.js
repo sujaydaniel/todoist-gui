@@ -84,7 +84,7 @@ async function init() {
 // === FETCH TASKS FROM "CHORES" ===
 async function fetchTasks() {
   if (!apiToken || !choresProjectId) return;
-
+  document.getElementById("loadingOverlay").style.display = "flex"; // show spinner
   const res = await fetch(`https://api.todoist.com/rest/v2/tasks?project_id=${choresProjectId}`, {
     headers: { Authorization: `Bearer ${apiToken}` }
   });
@@ -104,6 +104,7 @@ async function fetchTasks() {
 
   // When showAll = true, we include all tasks (due + no-due)
   renderTasks(tasks);
+  document.getElementById("loadingOverlay").style.display = "none"; // hide spinner
 }
 setInterval(fetchTasks, 60000);
 
@@ -223,22 +224,7 @@ function closeTaskMenu() {
   selectedTask = null;
 }
 
-// === COMPLETE / SNOOZE WITH AUDIT COMMENT ===
-async function completeTask() {
-  if (!selectedTask) return;
 
-  // close task
-  await fetch(`https://api.todoist.com/rest/v2/tasks/${selectedTask.id}/close`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiToken}` }
-  });
-
-  // add comment for audit trail
-  await addComment(selectedTask.id, `✅ Completed on ${new Date().toLocaleString()}`);
-
-  closeTaskMenu();
-  fetchTasks();
-}
 
 async function snoozeTask(hours) {
   if (!selectedTask) return;
@@ -380,6 +366,46 @@ async function deleteTask() {
   fetchTasks(); // refresh the board
 }
 
+// === COMPLETE / SNOOZE WITH AUDIT COMMENT ===
+async function completeTask() {
+  if (!selectedTask) return;
+
+  // close task
+  await fetch(`https://api.todoist.com/rest/v2/tasks/${selectedTask.id}/close`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiToken}` }
+  });
+
+  // add comment for audit trail
+  await addComment(selectedTask.id, `✅ Completed on ${new Date().toLocaleString()}`);
+
+  closeTaskMenu();
+  fetchTasks();
+}
+
+async function markTaskMissed() {
+  if (!selectedTask) return;
+
+    // ✅ Step 4: Close the task
+    await fetch(`https://api.todoist.com/rest/v2/tasks/${selectedTask.id}/close`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${apiToken}` }
+    });
+
+        // Step 3: Add a comment
+    const timestamp = new Date().toLocaleString();
+    await addComment(selectedTask.id, `❌ Missed on ${timestamp}`);
+
+    // Refresh UI
+    closeTaskMenu();
+    fetchTasks();
+
+}
+
+
+
+
+
 function formatDueDate(dueDate) {
   const now = new Date();
   const today = now.toDateString();
@@ -417,6 +443,7 @@ window.addEventListener("click", function(event) {
   const taskMenuModal = document.getElementById("taskMenuOverlay");
 
   // if clicked outside create task modal
+  
   if (event.target === createTaskModal) {
     closeCreateTask();
   }
@@ -425,6 +452,7 @@ window.addEventListener("click", function(event) {
   if (event.target === taskMenuModal) {
     closeTaskMenu();
   }
+    
 });
 
 
