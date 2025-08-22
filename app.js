@@ -379,6 +379,16 @@ async function completeTask() {
   // add comment for audit trail
   await addComment(selectedTask.id, `✅ Completed on ${new Date().toLocaleString()}`);
 
+  // Show cat overlay
+  const catOverlay = document.getElementById("catOverlay");
+  catOverlay.style.display = "flex";
+
+  // Hide after 2 seconds
+  setTimeout(() => {
+    catOverlay.style.display = "none";
+  }, 2000);
+
+
   closeTaskMenu();
   fetchTasks();
 }
